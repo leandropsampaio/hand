@@ -7,7 +7,6 @@ using namespace std;
 
 int main( int argc, const char** argv)
 {
-    int minH = 0, maxH = 24, minS = 81, maxS = 255, minV = 0, maxV = 82;
     // Criando a variável da câmera
     VideoCapture cam(0);
 
@@ -25,8 +24,6 @@ int main( int argc, const char** argv)
     Mat img_roi2;
     Mat img_gray2;
     Mat img_threshold2;
-    Mat hsv_frame;
-    Mat hsv_frame2;
 
     // Criar as janelas para mostrar as imagens da câmera
     namedWindow("Original_image",CV_WINDOW_AUTOSIZE);
@@ -36,24 +33,16 @@ int main( int argc, const char** argv)
     namedWindow("ROI",CV_WINDOW_AUTOSIZE);
     namedWindow("ROI 2",CV_WINDOW_AUTOSIZE);
 
-    cv::createTrackbar("MinH", "Original_image", &minH, 180);
-    cv::createTrackbar("MaxH", "Original_image", &maxH, 180);
-    cv::createTrackbar("MinS", "Original_image", &minS, 255);
-    cv::createTrackbar("MaxS", "Original_image", &maxS, 255);
-    cv::createTrackbar("MinV", "Original_image", &minV, 255);
-    cv::createTrackbar("MaxV", "Original_image", &maxV, 255);
-
     // Caracteres utilizados para escrever posteriormente no frame
     char a[40];
     char c[60];
 
+    // Contadores de dedos
+    int count =0;
+    int count2 =0;
+    int countResultado =0;
+
     while(1){
-
-        // Contadores de dedos
-        int count =0;
-        int count2 =0;
-        int countResultado =0;
-
         // Ler a imagem
         bool b=cam.read(img);
 
@@ -75,26 +64,17 @@ int main( int argc, const char** argv)
         img_roi = img(roi);
         img_roi2 = img(roi2);
 
-        cvtColor(img_roi, hsv_frame, CV_BGR2HSV);
-        inRange(hsv_frame, Scalar(minH, minS, minV), Scalar(maxH, maxS, maxV), img_gray);
-        cvtColor(img_roi2, hsv_frame2, CV_BGR2HSV);
-        inRange(hsv_frame2, Scalar(minH, minS, minV), Scalar(maxH, maxS, maxV), img_gray2);
-
-        // NÂO UTILIZADO
-        //Mat elem1 = cv::getStructuringElement( cv::MORPH_RECT, cv::Size( 3, 3 ) ); //Elemento estruturante
-       //cv::morphologyEx(img_gray,img_gray,cv::MORPH_OPEN,elem1,cv::Point( -1, -1 ));
-       //cv::morphologyEx(img_gray,img_gray,cv::MORPH_OPEN,elem1,cv::Point( -1, -1 ));
         // Transformando as imagens em escala de cinza
-        //cvtColor(hsv,img_gray, CV_RGB2GRAY);
-        //cvtColor(img_roi2,img_gray2, CV_RGB2GRAY);
+        cvtColor(img_roi,img_gray, CV_RGB2GRAY);
+        cvtColor(img_roi2,img_gray2, CV_RGB2GRAY);
 
         // Segmentando a primeira divisão da imagem
         GaussianBlur(img_gray,img_gray, Size(19,19), 0.0, 0);
-        threshold(img_gray,img_threshold, 0, 255, THRESH_BINARY+THRESH_OTSU);
+        threshold(img_gray,img_threshold, 0, 255, THRESH_BINARY_INV+THRESH_OTSU);
 
         // Segmentando a segunda divisão da imagem
         GaussianBlur(img_gray2, img_gray2, Size(19,19), 0.0, 0);
-        threshold(img_gray2,img_threshold2,0,255,THRESH_BINARY+THRESH_OTSU);
+        threshold(img_gray2,img_threshold2,0,255,THRESH_BINARY_INV+THRESH_OTSU);
 
         vector<vector<Point> >contours;
         vector<vector<Point> >contours2;
@@ -215,6 +195,44 @@ int main( int argc, const char** argv)
 
                             }
 
+                            // Limpar texto
+                            strcpy(a,"");
+                            strcpy(c,"");
+
+                            // Somando a quantidade de dedos detectada nas duas imagens
+                            countResultado = count + count2;
+
+                            if(countResultado==1)
+                                strcpy(a,"1");
+                            else if(countResultado==2)
+                                strcpy(a,"2");
+                            else if(countResultado==3)
+                                strcpy(a,"3");
+                            else if(countResultado==4)
+                                strcpy(a,"4");
+                            else if(countResultado==5)
+                                strcpy(a,"5");
+                            else if(countResultado==6)
+                                strcpy(a,"6");
+                            else if(countResultado==7)
+                                strcpy(a,"7");
+                            else if(countResultado==8)
+                                strcpy(a,"8");
+                            else if(countResultado==9)
+                                strcpy(a,"9");
+                            else if(countResultado==10)
+                                strcpy(a,"10");
+                            else
+                                strcpy(c,"Coloque a mao na posicao correta !!");
+
+                            // Colocar números no frame, através da variável "a"
+                            // (imagem, texto, ponto_inicial, fonte, tamanho, cor, espessura, tipo_linha, false)
+                            putText(img,a,Point(70,70),CV_FONT_HERSHEY_SIMPLEX,3,Scalar(255,0,0),2,8,false);
+
+                            // Colocar texto no frame, através da variável "b"
+                            // (imagem, texto, ponto_inicial, fonte, tamanho, cor, espessura, tipo_linha, false)
+                            putText(img,c,Point(10,50),CV_FONT_NORMAL,0.9,Scalar(0,0,255),2,8,false);
+
                             // Desenhando na imagem para mostrar a detecção dos dedos
                             drawContours(img_threshold2, contours2, i,Scalar(255,255,0),2, 8, vector<Vec4i>(), 0, Point() );
                             drawContours(img_threshold2, hullPoint, i, Scalar(255,255,0),1, 8, vector<Vec4i>(),0, Point());
@@ -227,67 +245,25 @@ int main( int argc, const char** argv)
                             for(size_t k=0; k<4; k++){
                                 line(img_roi2,rect_point[k],rect_point[(k+1)%4],Scalar(0,255,0),2,8);
                             }
+
                         }
                     }
              }
 
+            // Mostrar as imagens
+            imshow("Original_image", img);
+            imshow("Gray_image", img_gray);
+            imshow("Thresholded_image", img_threshold);
+            imshow("Thresholded_image 2", img_threshold2);
+            imshow("ROI", img_roi);
+            imshow("ROI 2", img_roi2);
+
+            // Aguardando 30 microsegundos para dá tempo do processamento da imagem
+            if(waitKey(30) == 27){
+                return -1;
+            }
+
         }
-
-
-
-        // Limpar texto
-        strcpy(a,"");
-        strcpy(c,"");
-
-        // Somando a quantidade de dedos detectada nas duas imagens
-        countResultado = count + count2;
-
-        cout << countResultado;
-        if(countResultado==1)
-            strcpy(a,"1");
-        else if(countResultado==2)
-            strcpy(a,"2");
-        else if(countResultado==3)
-            strcpy(a,"3");
-        else if(countResultado==4)
-            strcpy(a,"4");
-        else if(countResultado==5)
-            strcpy(a,"5");
-        else if(countResultado==6)
-            strcpy(a,"6");
-        else if(countResultado==7)
-            strcpy(a,"7");
-        else if(countResultado==8)
-            strcpy(a,"8");
-        else if(countResultado==9)
-            strcpy(a,"9");
-        else if(countResultado==10)
-            strcpy(a,"10");
-        else
-            strcpy(c,"Coloque a mao na posicao correta !!");
-
-        // Colocar números no frame, através da variável "a"
-        // (imagem, texto, ponto_inicial, fonte, tamanho, cor, espessura, tipo_linha, false)
-        putText(img,a,Point(70,70),CV_FONT_HERSHEY_SIMPLEX,3,Scalar(255,0,0),2,8,false);
-
-        // Colocar texto no frame, através da variável "b"
-        // (imagem, texto, ponto_inicial, fonte, tamanho, cor, espessura, tipo_linha, false)
-        putText(img,c,Point(10,50),CV_FONT_NORMAL,0.9,Scalar(0,0,255),2,8,false);
-
-        // Mostrar as imagens
-        imshow("Original_image", img);
-        imshow("Gray_image", img_gray);
-        imshow("Thresholded_image", img_threshold);
-        imshow("Thresholded_image 2", img_threshold2);
-        imshow("ROI", img_roi);
-        imshow("ROI 2", img_roi2);
-
-        // Aguardando 30 microsegundos para dá tempo do processamento da imagem
-        if(waitKey(50) == 47){
-            return -1;
-        }
-
-
     }
      return 0;
 }
