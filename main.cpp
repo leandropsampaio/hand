@@ -195,44 +195,6 @@ int main( int argc, const char** argv)
 
                             }
 
-                            // Limpar texto
-                            strcpy(a,"");
-                            strcpy(c,"");
-
-                            // Somando a quantidade de dedos detectada nas duas imagens
-                            countResultado = count + count2;
-
-                            if(countResultado==1)
-                                strcpy(a,"1");
-                            else if(countResultado==2)
-                                strcpy(a,"2");
-                            else if(countResultado==3)
-                                strcpy(a,"3");
-                            else if(countResultado==4)
-                                strcpy(a,"4");
-                            else if(countResultado==5)
-                                strcpy(a,"5");
-                            else if(countResultado==6)
-                                strcpy(a,"6");
-                            else if(countResultado==7)
-                                strcpy(a,"7");
-                            else if(countResultado==8)
-                                strcpy(a,"8");
-                            else if(countResultado==9)
-                                strcpy(a,"9");
-                            else if(countResultado==10)
-                                strcpy(a,"10");
-                            else
-                                strcpy(c,"Coloque a mao na posicao correta !!");
-
-                            // Colocar números no frame, através da variável "a"
-                            // (imagem, texto, ponto_inicial, fonte, tamanho, cor, espessura, tipo_linha, false)
-                            putText(img,a,Point(70,70),CV_FONT_HERSHEY_SIMPLEX,3,Scalar(255,0,0),2,8,false);
-
-                            // Colocar texto no frame, através da variável "b"
-                            // (imagem, texto, ponto_inicial, fonte, tamanho, cor, espessura, tipo_linha, false)
-                            putText(img,c,Point(10,50),CV_FONT_NORMAL,0.9,Scalar(0,0,255),2,8,false);
-
                             // Desenhando na imagem para mostrar a detecção dos dedos
                             drawContours(img_threshold2, contours2, i,Scalar(255,255,0),2, 8, vector<Vec4i>(), 0, Point() );
                             drawContours(img_threshold2, hullPoint, i, Scalar(255,255,0),1, 8, vector<Vec4i>(),0, Point());
@@ -249,7 +211,45 @@ int main( int argc, const char** argv)
                         }
                     }
              }
+        }
+            // Limpar texto
+            strcpy(a,"");
+            strcpy(c,"");
 
+            // Somando a quantidade de dedos detectada nas duas imagens
+            countResultado = count + count2;
+
+            if(countResultado==1)
+                strcpy(a,"1");
+            else if(countResultado==2)
+                strcpy(a,"2");
+            else if(countResultado==3)
+                strcpy(a,"3");
+            else if(countResultado==4)
+                strcpy(a,"4");
+            else if(countResultado==5)
+                strcpy(a,"5");
+            else if(countResultado==6)
+                strcpy(a,"6");
+            else if(countResultado==7)
+                strcpy(a,"7");
+            else if(countResultado==8)
+                strcpy(a,"8");
+            else if(countResultado==9)
+                strcpy(a,"9");
+            else if(countResultado==10)
+                strcpy(a,"10");
+            else
+                strcpy(c,"Coloque a mao na posicao correta !!");
+
+            // Colocar números no frame, através da variável "a"
+            // (imagem, texto, ponto_inicial, fonte, tamanho, cor, espessura, tipo_linha, false)
+            putText(img,a,Point(70,70),CV_FONT_HERSHEY_SIMPLEX,3,Scalar(255,0,0),2,8,false);
+
+            // Colocar texto no frame, através da variável "b"
+            // (imagem, texto, ponto_inicial, fonte, tamanho, cor, espessura, tipo_linha, false)
+            putText(img,c,Point(10,50),CV_FONT_NORMAL,0.9,Scalar(0,0,255),2,8,false);
+        
             // Mostrar as imagens
             imshow("Original_image", img);
             imshow("Gray_image", img_gray);
@@ -262,8 +262,7 @@ int main( int argc, const char** argv)
             if(waitKey(30) == 27){
                 return -1;
             }
-
-        }
     }
-     return 0;
+    
+    return 0;
 }
