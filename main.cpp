@@ -1,6 +1,8 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include <opencv2/highgui/highgui.hpp>
+#include "SkinDetector.h"
 #include <iostream>
+#include <time.h>
 
 using namespace cv;
 using namespace std;
@@ -20,10 +22,14 @@ int main( int argc, const char** argv)
     Mat img;
     Mat img_threshold;
     Mat img_gray;
+    Mat img_skin;
+    Mat img_skin2;
     Mat img_roi;
     Mat img_roi2;
     Mat img_gray2;
     Mat img_threshold2;
+
+    SkinDetector mySkinDetector;
 
     // Criar as janelas para mostrar as imagens da câmera
     namedWindow("Original_image",CV_WINDOW_AUTOSIZE);
@@ -36,11 +42,17 @@ int main( int argc, const char** argv)
     // Caracteres utilizados para escrever posteriormente no frame
     char a[40];
     char c[60];
+    string cSomaValores;
 
     // Contadores de dedos
     int count =0;
     int count2 =0;
     int countResultado =0;
+
+    int controle = 0;
+    int valor1 = rand()%6;
+    int valor2 = rand()%6;
+    int somaValores = valor1 + valor2;
 
     while(1){
         // Ler a imagem
@@ -56,6 +68,22 @@ int main( int argc, const char** argv)
         Rect roi(340,100,270,270);
         Rect roi2(140,100,270,270);
         */
+        char textFinal[60];
+        strcpy(textFinal,"");
+
+        if(controle==1){
+            strcpy(textFinal,"RESPOSTA CORRETA!");
+            putText(img,a,Point(120,120),CV_FONT_HERSHEY_SIMPLEX,3,Scalar(255,0,0),2,8,false);
+            controle = 0;
+            valor1 = rand()%6;
+            valor2 = rand()%6;
+            somaValores = valor1 + valor2;
+            imshow("Original_image", img);
+            if(waitKey(5000) == 4700){
+                return -1;
+            }
+        }
+
 
         // Capturando duas pequenas partes da imagem para fazer a segmentação posterior
         Rect roi(400,100,200,200);
@@ -65,16 +93,22 @@ int main( int argc, const char** argv)
         img_roi2 = img(roi2);
 
         // Transformando as imagens em escala de cinza
-        cvtColor(img_roi,img_gray, CV_RGB2GRAY);
-        cvtColor(img_roi2,img_gray2, CV_RGB2GRAY);
+        //cvtColor(img_roi,img_gray, CV_RGB2GRAY);
+        //cvtColor(img_roi2,img_gray2, CV_RGB2GRAY);
+
+        img_skin = mySkinDetector.getSkin(img_roi);
+        waitKey(30);
+        img_skin2 = mySkinDetector.getSkin(img_roi2);
+        waitKey(30);
+
 
         // Segmentando a primeira divisão da imagem
-        GaussianBlur(img_gray,img_gray, Size(19,19), 0.0, 0);
-        threshold(img_gray,img_threshold, 0, 255, THRESH_BINARY_INV+THRESH_OTSU);
+        GaussianBlur(img_skin,img_skin, Size(19,19), 0.0, 0);
+        threshold(img_skin,img_threshold, 0, 255, THRESH_BINARY_INV+THRESH_OTSU);
 
         // Segmentando a segunda divisão da imagem
-        GaussianBlur(img_gray2, img_gray2, Size(19,19), 0.0, 0);
-        threshold(img_gray2,img_threshold2,0,255,THRESH_BINARY_INV+THRESH_OTSU);
+        GaussianBlur(img_skin2, img_skin2, Size(19,19), 0.0, 0);
+        threshold(img_skin2,img_threshold2,0,255,THRESH_BINARY_INV+THRESH_OTSU);
 
         vector<vector<Point> >contours;
         vector<vector<Point> >contours2;
@@ -215,6 +249,12 @@ int main( int argc, const char** argv)
             // Limpar texto
             strcpy(a,"");
             strcpy(c,"");
+            //strcpy(cSomaValores,"");
+
+            //strcpy(cSomaValores,"Quanto é:" + (char)valor1 + "+" + (char)valor2 + "?");
+
+            //cSomaValores = "Quanto é:" + (char)valor1 + "+" + (char)valor2 + "?";
+
 
             // Somando a quantidade de dedos detectada nas duas imagens
             countResultado = count + count2;
@@ -252,7 +292,7 @@ int main( int argc, const char** argv)
         
             // Mostrar as imagens
             imshow("Original_image", img);
-            imshow("Gray_image", img_gray);
+            //imshow("Gray_image", img_gray);
             imshow("Thresholded_image", img_threshold);
             imshow("Thresholded_image 2", img_threshold2);
             imshow("ROI", img_roi);
