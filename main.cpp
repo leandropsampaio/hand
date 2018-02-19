@@ -92,9 +92,6 @@ int main( int argc, const char** argv)
         img_roi = img(roi);
         img_roi2 = img(roi2);
 
-        // Transformando as imagens em escala de cinza
-        //cvtColor(img_roi,img_gray, CV_RGB2GRAY);
-        //cvtColor(img_roi2,img_gray2, CV_RGB2GRAY);
 
         img_skin = mySkinDetector.getSkin(img_roi);
         waitKey(30);
@@ -102,13 +99,18 @@ int main( int argc, const char** argv)
         waitKey(30);
 
 
+        // Transformando as imagens em escala de cinza
+        cvtColor(img_skin,img_gray, CV_RGB2GRAY);
+        cvtColor(img_skin2,img_gray2, CV_RGB2GRAY);
+
+
         // Segmentando a primeira divisão da imagem
-        GaussianBlur(img_skin,img_skin, Size(19,19), 0.0, 0);
-        threshold(img_skin,img_threshold, 0, 255, THRESH_BINARY_INV+THRESH_OTSU);
+        GaussianBlur(img_gray,img_gray, Size(19,19), 0.0, 0);
+        threshold(img_gray,img_threshold, 0, 255, THRESH_BINARY_INV+THRESH_OTSU);
 
         // Segmentando a segunda divisão da imagem
-        GaussianBlur(img_skin2, img_skin2, Size(19,19), 0.0, 0);
-        threshold(img_skin2,img_threshold2,0,255,THRESH_BINARY_INV+THRESH_OTSU);
+        GaussianBlur(img_gray2, img_gray2, Size(19,19), 0.0, 0);
+        threshold(img_gray2,img_threshold2,0,255,THRESH_BINARY_INV+THRESH_OTSU);
 
         vector<vector<Point> >contours;
         vector<vector<Point> >contours2;
